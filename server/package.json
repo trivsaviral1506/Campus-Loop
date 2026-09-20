@@ -7,6 +7,7 @@
     "build": "echo 'No build step required for server'",
     "start": "node server.js",
     "dev": "node server.js",
+    "seed": "node seed.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -20,6 +21,7 @@
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "mongodb-memory-server": "^11.2.0",
-    "mongoose": "^9.10.1"
+    "mongoose": "^9.10.1",
+    "multer": "^2.4.0"
   }
 }
