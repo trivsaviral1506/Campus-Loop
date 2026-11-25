@@ -10,3 +10,4 @@ const SAFE_PICKUP_ZONES = [
 ];
 
 module.exports = { SAFE_PICKUP_ZONES };
+

@@ -7,3 +7,4 @@ router.get('/request/:requestId', protect, getRequestMessages);
 router.post('/request/:requestId', protect, sendMessage);
 
 module.exports = router;
+

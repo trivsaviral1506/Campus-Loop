@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { getImageUrl } from '../lib/utils';
 
 const ItemDetails = () => {
   const { id } = useParams();
@@ -46,7 +47,7 @@ const ItemDetails = () => {
       <div className="card glass-panel" style={{ flex: '1 1 60%' }}>
         <div style={{ background: 'rgba(255,255,255,0.05)', height: '300px', borderRadius: '8px', marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {item.imageUrl ? (
-            <img src={item.imageUrl} alt={item.name} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+            <img src={getImageUrl(item.imageUrl)} alt={item.name} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'cover', borderRadius: '8px' }} />
           ) : (
             <span style={{ color: 'var(--text-muted)' }}>No Image</span>
           )}

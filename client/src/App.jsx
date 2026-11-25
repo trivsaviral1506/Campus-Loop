@@ -21,8 +21,8 @@ function App() {
     <Router>
       <div className="flex flex-col min-h-screen">
         <Navbar />
-        {/* Added top padding so content isn't hidden behind the floating navbar */}
-        <main className="container flex-grow pt-32" style={{ paddingBottom: '64px' }}>
+        {/* Responsive top padding so content isn't hidden behind the floating navbar */}
+        <main className="container flex-grow pt-24 sm:pt-28 pb-16">
           <Routes>
             <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Landing />} />
             <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />

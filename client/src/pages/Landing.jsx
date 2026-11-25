@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Search, ArrowRight, BookOpen, Laptop, Activity, CheckCircle, ShieldCheck } from 'lucide-react';
+import { Search, ArrowRight, BookOpen, Laptop, Activity } from 'lucide-react';
 
 const Landing = () => {
   return (

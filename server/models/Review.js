@@ -21,3 +21,4 @@ const reviewSchema = new mongoose.Schema(
 reviewSchema.index({ request: 1, reviewer: 1 }, { unique: true });
 
 module.exports = mongoose.model('Review', reviewSchema);
+

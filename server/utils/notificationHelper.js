@@ -18,3 +18,4 @@ const createNotification = async ({ user, sender, type, title, message, link }) 
 };
 
 module.exports = { createNotification };
+

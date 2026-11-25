@@ -12,3 +12,4 @@ router.get('/user/:userId', getUserReviews);
 router.get('/request/:requestId', protect, getRequestReviews);
 
 module.exports = router;
+
