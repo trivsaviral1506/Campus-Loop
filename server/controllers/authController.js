@@ -1,10 +1,20 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const { getJwtSecret } = require('../config/jwt');
 
 // Generate JWT
 const generateToken = (id, role) => {
-  return jwt.sign({ id, role }, process.env.JWT_SECRET || 'fallback_secret', {
+  return jwt.sign({ id, role }, getJwtSecret(), {
     expiresIn: '30d',
+  });
+};
+
+// @desc    Get configured campus email domain
+// @route   GET /api/auth/config
+// @access  Public
+exports.getAuthConfig = async (req, res) => {
+  res.json({
+    allowedEmailDomain: process.env.ALLOWED_EMAIL_DOMAIN || '.edu'
   });
 };
 
@@ -15,18 +25,40 @@ exports.registerUser = async (req, res) => {
   try {
     const { name, email, password, college, department, year } = req.body;
 
-    const userExists = await User.findOne({ email });
+    if (!name || !email || !password || !college || !department || !year) {
+      return res.status(400).json({ message: 'Please fill in all required fields' });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanEmail)) {
+      return res.status(400).json({ message: 'Please provide a valid email address' });
+    }
+
+    // Validate campus email domain if configured
+    const allowedDomain = process.env.ALLOWED_EMAIL_DOMAIN || '.edu';
+    if (allowedDomain && !cleanEmail.endsWith(allowedDomain.toLowerCase())) {
+      return res.status(400).json({ 
+        message: `Registration requires a valid campus email ending with ${allowedDomain}` 
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters' });
+    }
+
+    const userExists = await User.findOne({ email: cleanEmail });
     if (userExists) {
-      return res.status(400).json({ message: 'User already exists' });
+      return res.status(400).json({ message: 'A user with this campus email already exists' });
     }
 
     const user = await User.create({
-      name,
-      email,
+      name: name.trim(),
+      email: cleanEmail,
       password,
-      college,
-      department,
-      year
+      college: college.trim(),
+      department: department.trim(),
+      year: year.trim()
     });
 
     if (user) {
@@ -35,10 +67,13 @@ exports.registerUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        college: user.college,
+        department: user.department,
+        year: user.year,
         token: generateToken(user._id, user.role),
       });
     } else {
-      res.status(400).json({ message: 'Invalid user data' });
+      res.status(400).json({ message: 'Invalid user data provided' });
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -52,7 +87,12 @@ exports.loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Please provide both email and password' });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const user = await User.findOne({ email: cleanEmail });
 
     if (user && (await user.matchPassword(password))) {
       res.json({
@@ -60,6 +100,9 @@ exports.loginUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        college: user.college,
+        department: user.department,
+        year: user.year,
         token: generateToken(user._id, user.role),
       });
     } else {

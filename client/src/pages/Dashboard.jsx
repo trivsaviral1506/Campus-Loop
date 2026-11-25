@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { Search, Plus } from 'lucide-react';
+import { getImageUrl } from '../lib/utils';
 
 const Dashboard = () => {
   const [items, setItems] = useState([]);
@@ -76,7 +77,7 @@ const Dashboard = () => {
           <Link to={`/item/${item._id}`} key={item._id} className="card glass-panel" style={{ width: 'calc(33.333% - 16px)', display: 'flex', flexDirection: 'column' }}>
             <div style={{ background: 'rgba(255,255,255,0.05)', height: '160px', borderRadius: '8px', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {item.imageUrl ? (
-                <img src={item.imageUrl} alt={item.name} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+                <img src={getImageUrl(item.imageUrl)} alt={item.name} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'cover', borderRadius: '8px' }} />
               ) : (
                 <span style={{ color: 'var(--text-muted)' }}>No Image</span>
               )}

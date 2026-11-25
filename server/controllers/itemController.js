@@ -1,4 +1,24 @@
 const Item = require('../models/Item');
+const { SAFE_PICKUP_ZONES } = require('../config/pickupZones');
+
+// @desc    Get authorized Safe Pickup Zones
+// @route   GET /api/items/pickup-zones
+// @access  Public
+exports.getPickupZones = async (req, res) => {
+  res.json(SAFE_PICKUP_ZONES);
+};
+
+// @desc    Get current user's items
+// @route   GET /api/items/my
+// @access  Private
+exports.getMyItems = async (req, res) => {
+  try {
+    const items = await Item.find({ owner: req.user.id }).sort({ createdAt: -1 });
+    res.json(items);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 
 // @desc    Create a listing
 // @route   POST /api/items
@@ -6,14 +26,26 @@ const Item = require('../models/Item');
 exports.createItem = async (req, res) => {
   try {
     const { name, description, category, condition, deposit, imageUrl, pickupLocation } = req.body;
+
+    if (!name || !description || !category || !condition || !pickupLocation) {
+      return res.status(400).json({ message: 'Please provide all required fields' });
+    }
+
+    if (!SAFE_PICKUP_ZONES.includes(pickupLocation)) {
+      return res.status(400).json({ 
+        message: 'Invalid pickup location. Please choose an authorized Safe Pickup Zone.',
+        validZones: SAFE_PICKUP_ZONES
+      });
+    }
+
     const item = await Item.create({
       owner: req.user.id,
-      name,
-      description,
+      name: name.trim(),
+      description: description.trim(),
       category,
       condition,
-      deposit: deposit || 0,
-      imageUrl,
+      deposit: Number(deposit) || 0,
+      imageUrl: imageUrl ? imageUrl.trim() : '',
       pickupLocation
     });
     res.status(201).json(item);
@@ -73,15 +105,22 @@ exports.updateItem = async (req, res) => {
     if (item) {
       // Check ownership
       if (item.owner.toString() !== req.user.id && req.user.role !== 'admin') {
-        return res.status(401).json({ message: 'Not authorized to update this item' });
+        return res.status(403).json({ message: 'Forbidden: You do not own this item' });
+      }
+
+      if (req.body.pickupLocation && !SAFE_PICKUP_ZONES.includes(req.body.pickupLocation)) {
+        return res.status(400).json({ 
+          message: 'Invalid pickup location. Please choose an authorized Safe Pickup Zone.',
+          validZones: SAFE_PICKUP_ZONES 
+        });
       }
 
       item.name = req.body.name || item.name;
       item.description = req.body.description || item.description;
       item.category = req.body.category || item.category;
       item.condition = req.body.condition || item.condition;
-      item.deposit = req.body.deposit !== undefined ? req.body.deposit : item.deposit;
-      item.imageUrl = req.body.imageUrl || item.imageUrl;
+      item.deposit = req.body.deposit !== undefined ? Number(req.body.deposit) : item.deposit;
+      item.imageUrl = req.body.imageUrl !== undefined ? req.body.imageUrl : item.imageUrl;
       item.pickupLocation = req.body.pickupLocation || item.pickupLocation;
       if (req.body.isAvailable !== undefined) {
         item.isAvailable = req.body.isAvailable;
@@ -107,7 +146,7 @@ exports.deleteItem = async (req, res) => {
     if (item) {
       // Check ownership
       if (item.owner.toString() !== req.user.id && req.user.role !== 'admin') {
-        return res.status(401).json({ message: 'Not authorized to delete this item' });
+        return res.status(403).json({ message: 'Forbidden: You do not own this item' });
       }
 
       await item.deleteOne();
